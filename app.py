@@ -38,18 +38,19 @@ def predict_aqi(data: PredictionRequest):
 
         forecast_days = max(1, min(data.days, 3))
         predictions = []
-        current_window = seq.copy()
+        current_window = seq.copy().astype(np.float32)
 
         input_name = session.get_inputs()[0].name
 
-        # Autoregressive multi-step rolling loop
+        # Autoregressive multi-step rolling loop with explicit float32 casting
         for _ in range(forecast_days):
-            input_tensor = current_window.reshape(1, 20, 1)
+            input_tensor = current_window.reshape(1, 20, 1).astype(np.float32)
             pred = session.run(None, {input_name: input_tensor})[0]
             pred_value = float(pred.item())
 
             predictions.append(pred_value)
-            current_window = np.append(current_window[1:], pred_value)
+            # Force appended array back to float32 to prevent double-precision error
+            current_window = np.append(current_window[1:], pred_value).astype(np.float32)
 
         primary_pred = predictions[0]
         if primary_pred <= 50:
