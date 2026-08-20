@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { CloudRain, ArrowDown, ShieldCheck, RefreshCw } from 'lucide-react';
+import { CloudRain, ArrowDown, ShieldCheck, RefreshCw, Calendar } from 'lucide-react';
 
 export default function App() {
   const defaultValues = [65.4, 72.1, 68.5, 74.2, 81.0, 79.3, 85.6, 90.2, 88.4, 92.1, 95.0, 91.8, 89.2, 93.5, 96.4, 99.1, 94.5, 92.8, 97.0, 102.3];
   
   const [inputs, setInputs] = useState(defaultValues);
+  const [forecastDays, setForecastDays] = useState(1);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -17,6 +18,7 @@ export default function App() {
 
   const handleReset = () => {
     setInputs(defaultValues);
+    setForecastDays(1);
     setResult(null);
     setError(null);
   };
@@ -35,11 +37,11 @@ export default function App() {
       const response = await fetch('https://air-forecast-backend.onrender.com/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ history: inputs })
+        body: JSON.stringify({ sequence: inputs, days: forecastDays })
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || 'Inference request failed');
+      if (!response.ok) throw new Error(data.error || data.detail || 'Inference request failed');
 
       setResult(data);
       document.getElementById('simulator').scrollIntoView({ behavior: 'smooth' });
@@ -77,7 +79,7 @@ export default function App() {
       {/* Hero Section */}
       <header className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-16 sm:pb-20 text-center">
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
-          Fresh Air Insights for <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-cyan-700 bg-clip-text text-transparent">Mumbai</span>
+          Predict Mumbai AQI with <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-cyan-700 bg-clip-text text-transparent">RNN</span>
         </h1>
         <p className="text-slate-700 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed font-medium px-4">
           Understanding tomorrow's atmosphere through advanced sequential modeling and continuous environmental data analysis.
@@ -176,7 +178,31 @@ export default function App() {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div>
-              <div className="text-xs uppercase tracking-wider text-slate-600 font-bold mb-4">Historical Daily Inputs (PM2.5 in micrograms per cubic meter)</div>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <div className="text-xs uppercase tracking-wider text-slate-600 font-bold">Historical Daily Inputs (PM2.5 in µg/m³)</div>
+                
+                {/* Forecast Horizon Selector */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-sky-600" /> Horizon:
+                  </span>
+                  {[1, 2, 3].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setForecastDays(d)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        forecastDays === d
+                          ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {d === 1 ? '1 Day' : `${d} Days`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[380px] overflow-y-auto pr-2">
                 {inputs.map((val, idx) => (
                   <div key={idx} className="flex flex-col bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
@@ -204,26 +230,40 @@ export default function App() {
             )}
 
             <button type="submit" disabled={loading} className="w-full py-4 bg-gradient-to-r from-sky-600 to-blue-600 hover:opacity-90 text-white font-bold rounded-2xl transition shadow-xl text-base tracking-wide cursor-pointer disabled:opacity-50">
-              {loading ? "Analyzing Air Patterns..." : "Check Tomorrow's Air Quality"}
+              {loading ? "Analyzing Air Patterns..." : `Forecast Air Quality (${forecastDays} ${forecastDays === 1 ? 'Day' : 'Days'})`}
             </button>
           </form>
 
           {result && (
-            <div className="mt-8 p-6 bg-slate-900 text-white border border-sky-500/30 rounded-2xl transition-all duration-300 shadow-xl">
-              <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Model Output & Health Assessment</div>
+            <div className="mt-8 p-6 bg-slate-900 text-white border border-sky-500/30 rounded-2xl transition-all duration-300 shadow-xl space-y-6">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Model Output & Multi-Step Assessment</div>
+                <div className="text-xs font-mono text-sky-400">Horizon: {forecastDays} {forecastDays === 1 ? 'Day' : 'Days'}</div>
+              </div>
+
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                 <div>
-                  <div className="text-3xl sm:text-4xl font-black text-sky-400">{result.predicted_pm25_next_day} $\mu g/m^3$</div>
-                  <div className="text-xs text-slate-300 mt-1">Next-Day Predicted PM2.5 Concentration</div>
+                  <div className="text-3xl sm:text-4xl font-black text-sky-400">{result.forecast_pm25} µg/m³</div>
+                  <div className="text-xs text-slate-300 mt-1">Next-Day (T+1) Predicted PM2.5 Concentration</div>
                 </div>
-                <div className={`px-5 py-3 rounded-xl border text-sm font-semibold tracking-wide ${
-                  result.risk_level === 'green' ? 'bg-sky-500/10 border-sky-500/30 text-sky-300' :
-                  result.risk_level === 'yellow' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
-                  'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                }`}>
-                  {result.air_quality_status}
+                <div className="px-5 py-3 rounded-xl border text-sm font-semibold tracking-wide bg-sky-500/10 border-sky-500/30 text-sky-300">
+                  {result.aqi_category} Category
                 </div>
               </div>
+
+              {result.multi_day_forecast && result.multi_day_forecast.length > 1 && (
+                <div className="pt-4 border-t border-slate-800">
+                  <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">Multi-Day Rollout Projection</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {result.multi_day_forecast.map((val, i) => (
+                      <div key={i} className="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl">
+                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Day {i + 1} (T+{i + 1})</div>
+                        <div className="text-lg font-bold font-mono text-sky-300 mt-0.5">{val} µg/m³</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

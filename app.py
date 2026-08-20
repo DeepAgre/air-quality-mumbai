@@ -1,85 +1,81 @@
-import os
-import numpy as np
-import pandas as pd
-import onnxruntime as ort
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+import numpy as np
+import onnxruntime as ort
 
-app = FastAPI(title="Mumbai AQI Sparse RNN Predictor", version="2.0")
+app = FastAPI(title="AirForecast Mumbai API", version="2.0")
 
-# Enable CORS for local development and production flexibility
+# Enable CORS so your frontend hosted on Vercel can access this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Allows all origins (or you can restrict to your Vercel domain)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ==========================================
-# 1. LOAD ONNX MODEL & SCALING BOUNDS
-# ==========================================
+# Load the ONNX model runtime session
 MODEL_PATH = "sparse_rnn_aqi.onnx"
-DATA_PATH = "city_averaged.csv"
+try:
+    session = ort.InferenceSession(MODEL_PATH)
+except Exception as e:
+    print(f"Error loading ONNX model: {e}")
 
-if not os.path.exists(MODEL_PATH):
-    raise RuntimeError(f"Could not find {MODEL_PATH}. Run train_and_evaluate.py first.")
+# Pydantic request model with validation
+class PredictionRequest(BaseModel):
+    sequence: list[float]
+    days: int = Field(default=1, ge=1, le=3)
 
-ort_session = ort.InferenceSession(MODEL_PATH)
-
-df = pd.read_csv(DATA_PATH)
-df.columns = [c.strip().lower() for c in df.columns]
-target_col = next((c for c in df.columns if 'pm25' in c or 'aqi' in c), df.columns[1])
-raw_values = pd.to_numeric(df[target_col], errors='coerce').interpolate().bfill().ffill().values
-
-train_split_idx = int(len(raw_values) * 0.8)
-min_val = float(raw_values[:train_split_idx].min())
-max_val = float(raw_values[:train_split_idx].max())
-
-# ==========================================
-# 2. API REQUEST SCHEMA
-# ==========================================
-class AQIRequest(BaseModel):
-    history: list[float]  # Exactly 20 historical PM2.5 values
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "AirForecast Mumbai RNN Inference API is running."}
 
 @app.post("/predict")
-def predict_pm25(payload: AQIRequest):
-    if len(payload.history) != 20:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Expected exactly 20 historical values, got {len(payload.history)}."
-        )
-    
+def predict_aqi(data: PredictionRequest):
     try:
-        input_array = np.array(payload.history, dtype=np.float32)
-        scaled_input = (input_array - min_val) / (max_val - min_val)
-        tensor_input = np.expand_dims(scaled_input, axis=(0, -1))
-        
-        ort_inputs = {ort_session.get_inputs()[0].name: tensor_input}
-        ort_outs = ort_session.run(None, ort_inputs)
-        
-        scaled_prediction = ort_outs[0][0][0]
-        final_prediction = float(scaled_prediction * (max_val - min_val) + min_val)
-        
-        # Determine air quality health category
-        val = round(final_prediction, 2)
-        if val <= 60:
-            status = "Satisfactory / Moderate"
-            color = "green"
-        elif val <= 120:
-            status = "Poor / Moderate Pollution Risk"
-            color = "yellow"
+        # Convert input list to numpy array
+        seq = np.array(data.sequence, dtype=np.float32)
+
+        if len(seq) != 20:
+            return {"error": "Sequence must contain exactly 20 days of data."}
+
+        # Ensure forecast horizon is between 1 and 3 days
+        forecast_days = max(1, min(data.days, 3))
+        predictions = []
+        current_window = seq.copy()
+
+        # Autoregressive multi-step rolling loop
+        for _ in range(forecast_days):
+            # Reshape input tensor for ONNX runtime model: [batch_size=1, sequence_length=20, features=1]
+            input_tensor = current_window.reshape(1, 20, 1)
+
+            # Run ONNX inference
+            input_name = session.get_inputs()[0].name
+            pred = session.run(None, {input_name: input_tensor})[0]
+            pred_value = float(pred.item())
+
+            predictions.append(pred_value)
+
+            # Slide the window forward: drop the oldest value, append the new prediction
+            current_window = np.append(current_window[1:], pred_value)
+
+        # Classify the primary (tomorrow's) prediction into an AQI category
+        primary_pred = predictions[0]
+        if primary_pred <= 50:
+            category, color = "Good", "emerald"
+        elif primary_pred <= 100:
+            category, color = "Moderate", "yellow"
+        elif primary_pred <= 200:
+            category, color = "Poor", "orange"
         else:
-            status = "Very Poor / High Pollution Alert"
-            color = "red"
-            
+            category, color = "Severe", "red"
+
         return {
-            "status": "success",
-            "predicted_pm25_next_day": val,
-            "air_quality_status": status,
-            "risk_level": color
+            "forecast_pm25": round(primary_pred, 2),
+            "multi_day_forecast": [round(p, 2) for p in predictions],
+            "aqi_category": category,
+            "color": color,
         }
-        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}
