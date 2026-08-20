@@ -55,16 +55,16 @@ export default function App() {
   return (
     <div id="top" className="min-h-screen bg-slate-900 text-slate-900 font-sans selection:bg-sky-500 selection:text-white">
 
-      {/* Sunny Sky Background Image & Gradients */}
+      {/* Background Image & Gradients */}
       <div className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1920&q=80')` }}></div>
       <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-sky-400/40 via-sky-200/60 to-white/90"></div>
 
-      {/* Floating Glass Navigation */}
+      {/* Navigation */}
       <nav className="sticky top-4 z-50 max-w-6xl mx-auto px-4 sm:px-6">
         <div className="backdrop-blur-xl bg-white/70 border border-white/50 rounded-full px-5 py-3 flex justify-between items-center shadow-xl">
           <a href="#top" onClick={scrollToTop} className="flex items-center space-x-2 cursor-pointer">
             <CloudRain className="w-5 h-5 text-sky-600 animate-pulse" />
-            <span className="font-bold text-sm tracking-tight text-slate-900">AirForecast Mumbai</span>
+            <span className="font-bold text-sm tracking-tight text-slate-900">Predict Mumbai AQI with RNN</span>
           </a>
           <div className="hidden md:flex space-x-8 text-xs font-semibold text-slate-700">
             <a href="#about" className="hover:text-sky-600 transition">About</a>
@@ -95,7 +95,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* About & Purpose Section */}
+      {/* About Section */}
       <section id="about" className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 border-t border-sky-200/60">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
@@ -131,7 +131,7 @@ export default function App() {
         </div>
       </section>
 
-      {/* RNN Architecture Narrative Section */}
+      {/* Architecture Section */}
       <section id="rnn-architecture" className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 border-t border-sky-200/60">
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
           <div className="text-sky-700 text-xs font-bold uppercase tracking-widest mb-3">Deep Learning Mechanism</div>
@@ -145,16 +145,13 @@ export default function App() {
               Air pollution does not happen in isolation. Atmospheric stagnation, wind directions, and continuous emissions create a chain reaction where yesterday's air quality directly influences today and tomorrow.
             </p>
             <p>
-              To capture this behavior, our system utilizes a <strong className="text-slate-900">Recurrent Neural Network (RNN)</strong>. Unlike standard models that look at isolated snapshots, an RNN passes a "hidden memory state" sequentially across a 20-day timeline. 
-            </p>
-            <p>
-              Combined with sparse attention routing, the model automatically filters out short-term statistical noise while focusing intensely on heavy pollutant accumulation trends, ensuring reliable predictions.
+              To capture this behavior, our system utilizes a <strong className="text-slate-900">Recurrent Neural Network (RNN)</strong>. Unlike standard models that look at isolated snapshots, an RNN passes a hidden memory state sequentially across a 20-day timeline. 
             </p>
           </div>
           <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/50 h-[320px] sm:h-[380px]">
             <img 
               src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=80" 
-              alt="Digital data and atmospheric intelligence network" 
+              alt="Digital data network" 
               className="w-full h-full object-cover"
             />
           </div>
@@ -251,13 +248,15 @@ export default function App() {
                 </div>
               </div>
 
-              {result.multi_day_forecast && result.multi_day_forecast.length > 1 && (
+              {result.multi_day_forecast && result.multi_day_forecast.length > 0 && (
                 <div className="pt-4 border-t border-slate-800">
-                  <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">Multi-Day Rollout Projection</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">Multi-Day Rollout Projection ({forecastDays} Days)</div>
+                  <div className={`grid grid-cols-1 sm:grid-cols-${Math.min(forecastDays, 3)} gap-3`}>
                     {result.multi_day_forecast.map((val, i) => (
                       <div key={i} className="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl">
-                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Day {i + 1} (T+{i + 1})</div>
+                        <div className="text-[10px] text-slate-400 font-semibold uppercase">
+                          {i === 0 ? 'Tomorrow (T+1)' : `Day ${i + 1} (T+${i + 1})`}
+                        </div>
                         <div className="text-lg font-bold font-mono text-sky-300 mt-0.5">{val} µg/m³</div>
                       </div>
                     ))}
