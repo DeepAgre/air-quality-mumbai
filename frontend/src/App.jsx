@@ -251,7 +251,7 @@ export default function App() {
               {result.multi_day_forecast && result.multi_day_forecast.length > 0 && (
                 <div className="pt-4 border-t border-slate-800">
                   <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">Multi-Day Rollout Projection ({forecastDays} Days)</div>
-                  <div className={`grid grid-cols-1 sm:grid-cols-${Math.min(forecastDays, 3)} gap-3`}>
+                  <div className={`grid gap-3 ${forecastDays === 1 ? 'grid-cols-1' : forecastDays === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
                     {result.multi_day_forecast.map((val, i) => (
                       <div key={i} className="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl">
                         <div className="text-[10px] text-slate-400 font-semibold uppercase">
