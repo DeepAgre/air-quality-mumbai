@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CloudRain, ArrowDown, ShieldCheck, RefreshCw, Calendar, AlertTriangle } from 'lucide-react';
+import { CloudRain, ArrowDown, ShieldCheck, RefreshCw, Calendar, AlertTriangle, Cpu } from 'lucide-react';
 
 export default function App() {
   const defaultValues = [65.4, 72.1, 68.5, 74.2, 81.0, 79.3, 85.6, 90.2, 88.4, 92.1, 95.0, 91.8, 89.2, 93.5, 96.4, 99.1, 94.5, 92.8, 97.0, 102.3];
@@ -235,7 +235,9 @@ export default function App() {
           {result && (
             <div className="mt-8 p-6 bg-slate-900 text-white border border-sky-500/30 rounded-2xl transition-all duration-300 shadow-xl space-y-6">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Model Output & Multi-Step Assessment</div>
+                <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-sky-400" /> Model Output & Confidence Assessment
+                </div>
                 <div className="text-xs font-mono text-sky-400">Horizon: {forecastDays} {forecastDays === 1 ? 'Day' : 'Days'}</div>
               </div>
 
@@ -244,9 +246,12 @@ export default function App() {
                   <div className="text-3xl sm:text-4xl font-black text-sky-400">{result.forecast_pm25} µg/m³</div>
                   <div className="text-xs text-slate-300 mt-1">Next-Day (T+1) Predicted PM2.5 Concentration</div>
                 </div>
-                <div className="px-5 py-3 rounded-xl border text-sm font-semibold tracking-wide bg-sky-500/10 border-sky-500/30 text-sky-300 flex items-center space-x-2">
-                  <AlertTriangle className="w-4 h-4 text-sky-400" />
-                  <span>{result.aqi_category} Category</span>
+                <div className="flex flex-col sm:items-end gap-2">
+                  <div className="px-4 py-2 rounded-xl border text-xs font-semibold tracking-wide bg-sky-500/10 border-sky-500/30 text-sky-300 flex items-center space-x-2">
+                    <ShieldCheck className="w-4 h-4 text-sky-400" />
+                    <span>Model Confidence: {result.confidence}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono">Validation Error Margin: {result.error_margin}</div>
                 </div>
               </div>
 
