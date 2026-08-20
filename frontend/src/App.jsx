@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CloudRain, ArrowDown, ShieldCheck, RefreshCw, Calendar } from 'lucide-react';
+import { CloudRain, ArrowDown, ShieldCheck, RefreshCw, Calendar, AlertTriangle } from 'lucide-react';
 
 export default function App() {
   const defaultValues = [65.4, 72.1, 68.5, 74.2, 81.0, 79.3, 85.6, 90.2, 88.4, 92.1, 95.0, 91.8, 89.2, 93.5, 96.4, 99.1, 94.5, 92.8, 97.0, 102.3];
@@ -244,10 +244,17 @@ export default function App() {
                   <div className="text-3xl sm:text-4xl font-black text-sky-400">{result.forecast_pm25} µg/m³</div>
                   <div className="text-xs text-slate-300 mt-1">Next-Day (T+1) Predicted PM2.5 Concentration</div>
                 </div>
-                <div className="px-5 py-3 rounded-xl border text-sm font-semibold tracking-wide bg-sky-500/10 border-sky-500/30 text-sky-300">
-                  {result.aqi_category} Category
+                <div className="px-5 py-3 rounded-xl border text-sm font-semibold tracking-wide bg-sky-500/10 border-sky-500/30 text-sky-300 flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 text-sky-400" />
+                  <span>{result.aqi_category} Category</span>
                 </div>
               </div>
+
+              {result.description && (
+                <div className="p-4 bg-slate-800/60 border border-slate-700/50 rounded-xl text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  <strong className="text-white">Health Advisory:</strong> {result.description}
+                </div>
+              )}
 
               {result.multi_day_forecast && result.multi_day_forecast.length > 0 && (
                 <div className="pt-4 border-t border-slate-800">
