@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import numpy as np
@@ -34,16 +34,17 @@ def predict_aqi(data: PredictionRequest):
         seq = np.array(data.sequence, dtype=np.float32)
 
         if len(seq) != 20:
-            return {"error": "Sequence must contain exactly 20 days of data."}
+            raise HTTPException(status_code=400, detail="Sequence must contain exactly 20 days of data.")
 
         forecast_days = max(1, min(data.days, 3))
         predictions = []
         current_window = seq.copy()
 
+        input_name = session.get_inputs()[0].name
+
         # Autoregressive multi-step rolling loop
         for _ in range(forecast_days):
             input_tensor = current_window.reshape(1, 20, 1)
-            input_name = session.get_inputs()[0].name
             pred = session.run(None, {input_name: input_tensor})[0]
             pred_value = float(pred.item())
 
@@ -67,4 +68,4 @@ def predict_aqi(data: PredictionRequest):
             "color": color,
         }
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))

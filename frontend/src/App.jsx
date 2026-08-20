@@ -32,6 +32,7 @@ export default function App() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setResult(null);
 
     try {
       const response = await fetch('https://air-forecast-backend.onrender.com/predict', {
