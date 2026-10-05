@@ -107,73 +107,8 @@ export default function App() {
         {/* Main Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* Left Column (Forecast & About Section) */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
-            
-            {/* 3-Day Output Card */}
-            <div className="bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between">
-              <div className="flex justify-between items-start mb-8">
-                <div>
-                  <h2 className="text-slate-500 font-medium text-sm">Prediction Output</h2>
-                  <p className="text-slate-800 font-bold text-xl mt-1">3-Day PM2.5 Forecast</p>
-                </div>
-                {result && (
-                  <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 shadow-sm text-sm font-bold text-emerald-700">
-                    <ShieldCheck className="w-4 h-4" />
-                    Confidence: {result.confidence}
-                  </div>
-                )}
-              </div>
-
-              {/* Forecast Display Area */}
-              {result && result.multi_day_forecast ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                  {result.multi_day_forecast.map((val, idx) => (
-                    <div key={idx} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
-                      <Sun className="w-10 h-10 text-yellow-500 mb-4" />
-                      <div className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Day {idx + 1}</div>
-                      <div className="text-5xl font-outfit font-extrabold text-slate-800">{val}</div>
-                      <div className="text-sm font-medium text-slate-400 mt-2">µg/m³ PM2.5</div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="h-[220px] flex items-center justify-center text-slate-400 font-medium border-2 border-dashed border-slate-300 rounded-3xl mb-8 bg-slate-50/50">
-                  Run the neural network forecast to generate multi-day predictions.
-                </div>
-              )}
-
-              <div className="bg-white/60 p-4 rounded-2xl border border-white">
-                <p className="text-slate-600 font-medium leading-relaxed">
-                  <span className="font-bold text-slate-800">Health Advisory: </span> 
-                  {result ? result.description : 'Awaiting sequence analysis to provide targeted health and outdoor activity guidance.'}
-                </p>
-              </div>
-            </div>
-
-            {/* About The Project Card */}
-            <div className="bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1">
-              <h3 className="text-xl font-outfit font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <Info className="w-5 h-5 text-blue-600" />
-                About This Project
-              </h3>
-              <div className="space-y-5 text-slate-600 font-medium text-sm leading-relaxed">
-                <p>
-                  <strong className="text-slate-800">AirCast</strong> was conceptualized and developed by a dedicated group of 5 M.Sc. Computer Science students from <strong className="text-slate-800">Ramnarain Ruia Autonomous College, Mumbai</strong>. Our primary objective is to address the severe and growing concern of urban air pollution by providing an accessible, highly accurate environmental forecasting tool for the citizens of Mumbai.
-                </p>
-                <p>
-                  Unlike traditional weather applications that only display current statistics, this platform uncovers hidden temporal dependencies in the atmosphere. By analyzing rolling 20-day historical data arrays, our system can identify pollution trends and predict hazardous particulate matter (PM2.5) spikes before they happen, granting vulnerable populations crucial early warnings.
-                </p>
-                <p>
-                  <strong className="text-slate-800">Technical Infrastructure:</strong> At the core of the application lies a sophisticated Recurrent Neural Network (RNN), heavily optimized via ONNX Runtime to execute deep-learning inference in milliseconds. This model is served by a highly concurrent Python FastAPI backend, while the user interface is built strictly with React and Tailwind CSS—bridging complex predictive modeling with clean, actionable public health awareness.
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Right Column (List Sequence & Predict Button) */}
-          <div className="lg:col-span-4 bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col h-[780px]">
+          {/* 1. Right Column (List Sequence & Predict Button) - Ordered 1st on Mobile, 2nd on Desktop spanning 2 rows */}
+          <div className="order-1 lg:order-2 lg:col-span-4 lg:row-span-2 bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col h-[600px] lg:h-[780px]">
             
             <div className="flex justify-between items-center mb-6">
               <div className="flex gap-5 text-sm font-semibold">
@@ -233,6 +168,67 @@ export default function App() {
               ))}
             </div>
           </div>
+
+          {/* 2. 3-Day Output Card - Ordered 2nd on Mobile, 1st on Desktop Top-Left */}
+          <div className="order-2 lg:order-1 lg:col-span-8 bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h2 className="text-slate-500 font-medium text-sm">Prediction Output</h2>
+                <p className="text-slate-800 font-bold text-xl mt-1">3-Day PM2.5 Forecast</p>
+              </div>
+              {result && (
+                <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 shadow-sm text-sm font-bold text-emerald-700">
+                  <ShieldCheck className="w-4 h-4" />
+                  Confidence: {result.confidence}
+                </div>
+              )}
+            </div>
+
+            {/* Forecast Display Area */}
+            {result && result.multi_day_forecast ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                {result.multi_day_forecast.map((val, idx) => (
+                  <div key={idx} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                    <Sun className="w-10 h-10 text-yellow-500 mb-4" />
+                    <div className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Day {idx + 1}</div>
+                    <div className="text-5xl font-outfit font-extrabold text-slate-800">{val}</div>
+                    <div className="text-sm font-medium text-slate-400 mt-2">µg/m³ PM2.5</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-[220px] flex items-center justify-center text-center px-4 text-slate-400 font-medium border-2 border-dashed border-slate-300 rounded-3xl mb-8 bg-slate-50/50">
+                Run the neural network forecast to generate multi-day predictions.
+              </div>
+            )}
+
+            <div className="bg-white/60 p-4 rounded-2xl border border-white">
+              <p className="text-slate-600 font-medium leading-relaxed">
+                <span className="font-bold text-slate-800">Health Advisory: </span> 
+                {result ? result.description : 'Awaiting sequence analysis to provide targeted health and outdoor activity guidance.'}
+              </p>
+            </div>
+          </div>
+
+          {/* 3. About The Project Card - Ordered 3rd on Mobile, 3rd on Desktop Bottom-Left */}
+          <div className="order-3 lg:order-3 lg:col-span-8 bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full">
+            <h3 className="text-xl font-outfit font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <Info className="w-5 h-5 text-blue-600" />
+              About This Project
+            </h3>
+            <div className="space-y-5 text-slate-600 font-medium text-sm leading-relaxed">
+              <p>
+                <strong className="text-slate-800">AirCast</strong> was conceptualized and developed by a dedicated group of 5 M.Sc. Computer Science students from <strong className="text-slate-800">Ramnarain Ruia Autonomous College, Mumbai</strong>. Our primary objective is to address the severe and growing concern of urban air pollution by providing an accessible, highly accurate environmental forecasting tool for the citizens of Mumbai.
+              </p>
+              <p>
+                Unlike traditional weather applications that only display current statistics, this platform uncovers hidden temporal dependencies in the atmosphere. By analyzing rolling 20-day historical data arrays, our system can identify pollution trends and predict hazardous particulate matter (PM2.5) spikes before they happen, granting vulnerable populations crucial early warnings.
+              </p>
+              <p>
+                <strong className="text-slate-800">Technical Infrastructure:</strong> At the core of the application lies a sophisticated Recurrent Neural Network (RNN), heavily optimized via ONNX Runtime to execute deep-learning inference in milliseconds. This model is served by a highly concurrent Python FastAPI backend, while the user interface is built strictly with React and Tailwind CSS—bridging complex predictive modeling with clean, actionable public health awareness.
+              </p>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
