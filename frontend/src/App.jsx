@@ -2,26 +2,19 @@ import React, { useState } from 'react';
 import { 
   CloudRain, 
   MapPin, 
-  Search, 
-  Moon, 
   Sun, 
-  Wind, 
-  Eye, 
-  Activity, 
-  Thermometer, 
   DownloadCloud, 
-  Cpu, 
-  RefreshCw, 
   AlertCircle,
-  Menu,
-  ChevronDown
+  ShieldCheck,
+  Info
 } from 'lucide-react';
 
 export default function App() {
   const defaultValues = [65.4, 72.1, 68.5, 74.2, 81.0, 79.3, 85.6, 90.2, 88.4, 92.1, 95.0, 91.8, 89.2, 93.5, 96.4, 99.1, 94.5, 92.8, 97.0, 102.3];
   
   const [inputs, setInputs] = useState(defaultValues);
-  const [forecastDays, setForecastDays] = useState(1);
+  // Hardcoded to always request 3 days of predictions
+  const forecastDays = 3;
   const [loading, setLoading] = useState(false);
   const [fetchingApi, setFetchingApi] = useState(false);
   const [result, setResult] = useState(null);
@@ -35,7 +28,6 @@ export default function App() {
 
   const handleReset = () => {
     setInputs(defaultValues);
-    setForecastDays(1);
     setResult(null);
     setError(null);
   };
@@ -94,144 +86,104 @@ export default function App() {
       <div className="max-w-[1300px] w-full flex flex-col gap-6">
 
         {/* Top Navbar */}
-        <div className="bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-4 px-6 flex flex-wrap justify-between items-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] gap-4">
+        <div className="relative bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-5 px-8 flex justify-between items-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <Menu className="w-5 h-5 text-slate-600" />
-              <span className="font-outfit font-extrabold text-xl text-blue-600 tracking-tight">AirCast</span>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 text-slate-600 font-medium text-sm">
-              <MapPin className="w-4 h-4 text-slate-400" />
-              Mumbai, Maharashtra
-            </div>
-          </div>
-
-          <div className="hidden md:flex items-center bg-white rounded-full px-4 py-2.5 w-72 shadow-sm border border-slate-100">
-            <Search className="w-4 h-4 text-slate-400" />
-            <input type="text" placeholder="Search Location" className="bg-transparent border-none outline-none ml-3 text-sm w-full text-slate-700" disabled />
+          {/* Left: Location */}
+          <div className="hidden sm:flex items-center gap-2 text-slate-600 font-medium text-sm w-1/3">
             <MapPin className="w-4 h-4 text-slate-400" />
+            Mumbai, Maharashtra
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="bg-slate-900 text-white px-5 py-2.5 rounded-full text-xs font-semibold flex items-center gap-2 shadow-md">
-              <Moon className="w-4 h-4" /> Dark
-            </button>
-            <div className="hidden sm:flex items-center gap-2 ml-2">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs border border-blue-200">
-                DA
-              </div>
-              <span className="text-sm font-semibold text-slate-700">Deep Agre</span>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
-            </div>
+          {/* Center: Title */}
+          <div className="flex items-center justify-center gap-2 w-full sm:w-1/3">
+            <CloudRain className="w-7 h-7 text-blue-600" />
+            <span className="font-outfit font-extrabold text-2xl text-blue-600 tracking-tight">AirCast</span>
           </div>
+
+          {/* Right: Spacer for perfect centering */}
+          <div className="hidden sm:block w-1/3"></div>
         </div>
 
         {/* Main Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* Left Column (Forecast & Metrics) */}
+          {/* Left Column (Forecast & About Section) */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             
-            {/* Big Top Forecast Card */}
-            <div className="bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-[300px]">
-              <div className="flex justify-between items-start">
+            {/* 3-Day Output Card */}
+            <div className="bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between">
+              <div className="flex justify-between items-start mb-8">
                 <div>
-                  <h2 className="text-slate-500 font-medium text-sm">Current Output</h2>
-                  <p className="text-slate-800 font-bold text-lg mt-1">{result ? 'Generated Forecast' : 'Awaiting Sequence'}</p>
+                  <h2 className="text-slate-500 font-medium text-sm">Prediction Output</h2>
+                  <p className="text-slate-800 font-bold text-xl mt-1">3-Day PM2.5 Forecast</p>
                 </div>
-                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-100 shadow-sm text-sm font-semibold text-slate-700">
-                  <select 
-                    value={forecastDays}
-                    onChange={(e) => setForecastDays(Number(e.target.value))}
-                    className="bg-transparent outline-none cursor-pointer"
-                  >
-                    <option value={1}>1 Day Horizon</option>
-                    <option value={2}>2 Day Horizon</option>
-                    <option value={3}>3 Day Horizon</option>
-                  </select>
-                </div>
+                {result && (
+                  <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 shadow-sm text-sm font-bold text-emerald-700">
+                    <ShieldCheck className="w-4 h-4" />
+                    Confidence: {result.confidence}
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-8">
-                {/* Weather Icon Mock */}
-                <div className="w-24 h-24 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full shadow-lg shadow-orange-200 relative">
-                  <div className="absolute -bottom-2 -left-4 bg-white/30 backdrop-blur-md rounded-full w-20 h-10 border border-white/40"></div>
-                </div>
-                
-                <div>
-                  <div className="flex items-start gap-1">
-                    <h1 className="text-7xl font-outfit font-bold text-slate-800 tracking-tighter">
-                      {result ? result.forecast_pm25 : '--'}
-                    </h1>
-                    <span className="text-2xl text-slate-500 font-medium mt-2">µg/m³</span>
-                  </div>
-                  <p className="text-slate-600 text-lg font-medium mt-1">
-                    PM2.5 <span className="text-slate-400 text-sm ml-3">Confidence: {result ? result.confidence : 'N/A'}</span>
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-slate-600 font-medium mt-4">
-                {result ? result.description : 'Run the neural network sequence on the right panel to generate public health advisories and upcoming particulate matter levels.'}
-              </p>
-            </div>
-
-            {/* 6 Grid Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {[
-                { label: 'Pollutant', val: 'PM2.5', icon: Activity, sub: 'Particulate Matter' },
-                { label: 'ML Engine', val: 'RNN', icon: Cpu, sub: 'ONNX Runtime' },
-                { label: 'API Status', val: 'Active', icon: DownloadCloud, sub: 'FastAPI Connected' },
-                { label: 'Location', val: 'Mumbai', icon: MapPin, sub: 'Maharashtra' },
-                { label: 'Speed', val: '<20ms', icon: Wind, sub: 'Inference Time' },
-                { label: 'Sequence', val: '20 Days', icon: Eye, sub: 'Historical Array' }
-              ].map((item, i) => (
-                <div key={i} className="bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center">
-                  <div className="flex items-center gap-2 text-slate-500 text-sm font-medium mb-2">
-                    <item.icon className="w-4 h-4 text-slate-400" />
-                    {item.label}
-                  </div>
-                  <div className="text-2xl font-outfit font-bold text-slate-800">{item.val}</div>
-                  <div className="text-xs text-slate-500 font-medium mt-1">{item.sub}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Bottom Multi-Day Card */}
-            <div className="bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <h3 className="text-slate-500 font-medium mb-6">Multi-Day Rollout Summary</h3>
+              {/* Forecast Display Area */}
               {result && result.multi_day_forecast ? (
-                <div className="flex gap-12">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                   {result.multi_day_forecast.map((val, idx) => (
-                    <div key={idx} className="flex flex-col gap-2">
-                      <div className="text-slate-800 font-semibold flex items-center gap-2">
-                        <Sun className="w-5 h-5 text-yellow-500" /> Day {idx + 1}
-                      </div>
-                      <div className="text-3xl font-outfit font-bold text-slate-800">{val}</div>
-                      <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">PM2.5 Forecast</div>
+                    <div key={idx} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                      <Sun className="w-10 h-10 text-yellow-500 mb-4" />
+                      <div className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Day {idx + 1}</div>
+                      <div className="text-5xl font-outfit font-extrabold text-slate-800">{val}</div>
+                      <div className="text-sm font-medium text-slate-400 mt-2">µg/m³ PM2.5</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-sm font-medium text-slate-400">Run forecast to see multi-day timeline.</div>
+                <div className="h-[220px] flex items-center justify-center text-slate-400 font-medium border-2 border-dashed border-slate-300 rounded-3xl mb-8 bg-slate-50/50">
+                  Run the neural network forecast to generate multi-day predictions.
+                </div>
               )}
+
+              <div className="bg-white/60 p-4 rounded-2xl border border-white">
+                <p className="text-slate-600 font-medium leading-relaxed">
+                  <span className="font-bold text-slate-800">Health Advisory: </span> 
+                  {result ? result.description : 'Awaiting sequence analysis to provide targeted health and outdoor activity guidance.'}
+                </p>
+              </div>
+            </div>
+
+            {/* About The Project Card */}
+            <div className="bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1">
+              <h3 className="text-xl font-outfit font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <Info className="w-5 h-5 text-blue-600" />
+                About This Project
+              </h3>
+              <div className="space-y-5 text-slate-600 font-medium text-sm leading-relaxed">
+                <p>
+                  <strong className="text-slate-800">AirCast</strong> was conceptualized and developed by a dedicated group of 5 M.Sc. Computer Science students from <strong className="text-slate-800">Ramnarain Ruia Autonomous College, Mumbai</strong>. Our primary objective is to address the severe and growing concern of urban air pollution by providing an accessible, highly accurate environmental forecasting tool for the citizens of Mumbai.
+                </p>
+                <p>
+                  Unlike traditional weather applications that only display current statistics, this platform uncovers hidden temporal dependencies in the atmosphere. By analyzing rolling 20-day historical data arrays, our system can identify pollution trends and predict hazardous particulate matter (PM2.5) spikes before they happen, granting vulnerable populations crucial early warnings.
+                </p>
+                <p>
+                  <strong className="text-slate-800">Technical Infrastructure:</strong> At the core of the application lies a sophisticated Recurrent Neural Network (RNN), heavily optimized via ONNX Runtime to execute deep-learning inference in milliseconds. This model is served by a highly concurrent Python FastAPI backend, while the user interface is built strictly with React and Tailwind CSS—bridging complex predictive modeling with clean, actionable public health awareness.
+                </p>
+              </div>
             </div>
 
           </div>
 
           {/* Right Column (List Sequence & Predict Button) */}
-          <div className="lg:col-span-4 bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col h-[750px]">
+          <div className="lg:col-span-4 bg-[#F2F5FE]/80 backdrop-blur-xl border border-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col h-[780px]">
             
             <div className="flex justify-between items-center mb-6">
               <div className="flex gap-5 text-sm font-semibold">
-                <button className="text-slate-800 border-b-2 border-slate-800 pb-1">Historical Sequence</button>
+                <button className="text-slate-800 border-b-2 border-slate-800 pb-1">Historical Input Data</button>
                 <button onClick={handleReset} className="text-slate-400 hover:text-slate-600 pb-1">Reset</button>
               </div>
               <button 
                 onClick={handleSubmit} 
                 disabled={loading}
-                className="bg-slate-900 text-white text-xs px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-50"
+                className="bg-slate-900 text-white text-xs px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition disabled:opacity-50"
               >
                 {loading ? 'Analyzing...' : 'Run Forecast'}
               </button>
@@ -240,7 +192,7 @@ export default function App() {
             <button 
               onClick={fetchLiveData} 
               disabled={fetchingApi}
-              className="w-full bg-blue-50 border border-blue-100 text-blue-600 font-semibold text-sm py-3 rounded-xl mb-6 flex items-center justify-center gap-2 hover:bg-blue-100 transition"
+              className="w-full bg-blue-50 border border-blue-100 text-blue-600 font-semibold text-sm py-3.5 rounded-xl mb-6 flex items-center justify-center gap-2 hover:bg-blue-100 transition"
             >
               <DownloadCloud className={`w-4 h-4 ${fetchingApi ? 'animate-pulse' : ''}`} />
               {fetchingApi ? 'Fetching Data...' : 'Sync Live Open-Meteo Data'}
@@ -248,7 +200,7 @@ export default function App() {
             
             {error && <div className="text-red-500 text-xs font-medium mb-4 bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-2"><AlertCircle className="w-4 h-4"/>{error}</div>}
 
-            {/* Scrollable List */}
+            {/* Scrollable Sequence Inputs List */}
             <div className="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
               <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
