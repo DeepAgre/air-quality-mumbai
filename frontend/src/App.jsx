@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CloudRain, ArrowDown, ShieldCheck, RefreshCw, Calendar, AlertTriangle, Cpu } from 'lucide-react';
+import { CloudRain, ArrowDown, ShieldCheck, RefreshCw, Calendar, AlertTriangle, Cpu, DownloadCloud } from 'lucide-react';
 
 export default function App() {
   const defaultValues = [65.4, 72.1, 68.5, 74.2, 81.0, 79.3, 85.6, 90.2, 88.4, 92.1, 95.0, 91.8, 89.2, 93.5, 96.4, 99.1, 94.5, 92.8, 97.0, 102.3];
@@ -7,6 +7,7 @@ export default function App() {
   const [inputs, setInputs] = useState(defaultValues);
   const [forecastDays, setForecastDays] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [fetchingApi, setFetchingApi] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
@@ -21,6 +22,31 @@ export default function App() {
     setForecastDays(1);
     setResult(null);
     setError(null);
+  };
+
+  // Fetch Live 20-Day PM2.5 Data for Mumbai using Open-Meteo API
+  const fetchLiveData = async () => {
+    setFetchingApi(true);
+    try {
+      const response = await fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=19.0760&longitude=72.8777&hourly=pm2_5&past_days=20&forecast_days=0');
+      const data = await response.json();
+      
+      const pm25Hourly = data.hourly.pm2_5;
+      const dailyPM25 = [];
+      
+      // Extract 1 reading per day (e.g., at noon) for the 20 days
+      for (let i = 0; i < 20; i++) {
+        const value = pm25Hourly[i * 24 + 12] || pm25Hourly[i * 24] || 0;
+        dailyPM25.push(parseFloat(value.toFixed(1)));
+      }
+      
+      setInputs(dailyPM25);
+    } catch (err) {
+      console.error("Error fetching live data:", err);
+      alert("Failed to fetch live API data. Please try again.");
+    } finally {
+      setFetchingApi(false);
+    }
   };
 
   const scrollToTop = (e) => {
@@ -54,15 +80,11 @@ export default function App() {
   };
 
   return (
-    <div id="top" className="min-h-screen bg-slate-900 text-slate-900 font-sans selection:bg-sky-500 selection:text-white">
-
-      {/* Background Image & Gradients */}
-      <div className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1920&q=80')` }}></div>
-      <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-sky-400/40 via-sky-200/60 to-white/90"></div>
+    <div id="top" className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-sky-500 selection:text-white">
 
       {/* Navigation */}
       <nav className="sticky top-4 z-50 max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="backdrop-blur-xl bg-white/70 border border-white/50 rounded-full px-5 py-3 flex justify-between items-center shadow-xl">
+        <div className="backdrop-blur-xl bg-white/70 border border-slate-200 rounded-full px-5 py-3 flex justify-between items-center shadow-lg">
           <a href="#top" onClick={scrollToTop} className="flex items-center space-x-2 cursor-pointer">
             <CloudRain className="w-5 h-5 text-sky-600 animate-pulse" />
             <span className="font-bold text-sm tracking-tight text-slate-900">Predict Mumbai AQI with RNN</span>
@@ -71,7 +93,7 @@ export default function App() {
             <a href="#about" className="hover:text-sky-600 transition">About</a>
             <a href="#rnn-architecture" className="hover:text-sky-600 transition">Model Architecture</a>
           </div>
-          <a href="#simulator" className="bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-xs px-4 sm:px-5 py-2 rounded-full shadow-lg hover:opacity-90 transition">
+          <a href="#simulator" className="bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-xs px-4 sm:px-5 py-2 rounded-full shadow hover:opacity-90 transition">
             Check Air Quality
           </a>
         </div>
@@ -86,18 +108,18 @@ export default function App() {
           Understanding tomorrow's atmosphere through advanced sequential modeling and continuous environmental data analysis.
         </p>
         <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4 px-4">
-          <a href="#simulator" className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-sky-600/20 transition flex items-center justify-center space-x-2">
+          <a href="#simulator" className="w-full sm:w-auto bg-sky-600 hover:bg-sky-500 text-white font-bold px-8 py-4 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
             <span>Get Started</span>
             <ArrowDown className="w-4 h-4" />
           </a>
-          <a href="#about" className="w-full sm:w-auto backdrop-blur-md bg-white/60 border border-white/80 hover:bg-white/80 text-slate-800 font-semibold px-8 py-4 rounded-2xl transition shadow-sm">
+          <a href="#about" className="w-full sm:w-auto bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold px-8 py-4 rounded-2xl transition shadow-sm">
             Learn More
           </a>
         </div>
       </header>
 
       {/* About Section */}
-      <section id="about" className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 border-t border-sky-200/60">
+      <section id="about" className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 border-t border-slate-200">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="text-sky-700 text-xs font-bold uppercase tracking-widest mb-3">Project Overview</div>
@@ -109,7 +131,7 @@ export default function App() {
               Developed as part of an M.Sc. Computer Science initiative at Ramnarain Ruia Autonomous College, this project bridges theoretical deep learning with real-world public health awareness.
             </p>
           </div>
-          <div className="backdrop-blur-xl bg-white/70 border border-white/80 rounded-3xl p-6 sm:p-8 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl">
             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center space-x-2">
               <ShieldCheck className="w-5 h-5 text-sky-600" />
               <span>Core Objectives</span>
@@ -133,7 +155,7 @@ export default function App() {
       </section>
 
       {/* Architecture Section */}
-      <section id="rnn-architecture" className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 border-t border-sky-200/60">
+      <section id="rnn-architecture" className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 border-t border-slate-200">
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
           <div className="text-sky-700 text-xs font-bold uppercase tracking-widest mb-3">Deep Learning Mechanism</div>
           <h2 className="text-3xl font-bold text-slate-900 mb-4">How Our Neural Network Forecasts Air Quality</h2>
@@ -149,7 +171,7 @@ export default function App() {
               To capture this behavior, our system utilizes a <strong className="text-slate-900">Recurrent Neural Network (RNN)</strong>. Unlike standard models that look at isolated snapshots, an RNN passes a hidden memory state sequentially across a 20-day timeline. 
             </p>
           </div>
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/50 h-[320px] sm:h-[380px]">
+          <div className="relative rounded-3xl overflow-hidden shadow-xl border border-slate-200 h-[320px] sm:h-[380px]">
             <img 
               src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=80" 
               alt="Digital data network" 
@@ -160,18 +182,33 @@ export default function App() {
       </section>
 
       {/* Simulator Workspace Section */}
-      <section id="simulator" className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20 border-t border-sky-200/60">
-        <div className="backdrop-blur-2xl bg-white/80 border border-white/90 rounded-3xl p-6 sm:p-12 shadow-2xl">
+      <section id="simulator" className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20 border-t border-slate-200">
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-12 shadow-2xl">
           
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 mb-8 border-b border-slate-200 gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-8 border-b border-slate-200 gap-4">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900">20-Day Sequence Simulation Workspace</h2>
-              <p className="text-slate-600 text-sm mt-1">Review historical particulate measurements or adjust values to test custom scenarios.</p>
+              <p className="text-slate-600 text-sm mt-1">Review historical measurements, fetch live data, or adjust values manually.</p>
             </div>
-            <button type="button" onClick={handleReset} className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-700 hover:bg-sky-100 transition font-semibold">
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Reset Sample Array</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button 
+                type="button" 
+                onClick={fetchLiveData} 
+                disabled={fetchingApi}
+                className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-700 hover:bg-sky-100 transition font-semibold disabled:opacity-50"
+              >
+                <DownloadCloud className={`w-3.5 h-3.5 ${fetchingApi ? 'animate-bounce' : ''}`} />
+                <span>{fetchingApi ? 'Fetching Data...' : 'Fetch Live Mumbai Data'}</span>
+              </button>
+              <button 
+                type="button" 
+                onClick={handleReset} 
+                className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 hover:bg-slate-100 transition font-semibold"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Reset Defaults</span>
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -222,7 +259,7 @@ export default function App() {
             </div>
 
             {error && (
-              <div className="p-4 bg-rose-500/10 border border-rose-500/30 text-rose-700 rounded-2xl text-sm font-semibold">
+              <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-sm font-semibold">
                 Error: {error}
               </div>
             )}
@@ -283,7 +320,7 @@ export default function App() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-sky-200/80 bg-white/80 backdrop-blur-md py-8 px-4 sm:px-6 text-center text-xs text-slate-600">
+      <footer className="relative z-10 border-t border-slate-200 bg-white py-8 px-4 sm:px-6 text-center text-xs text-slate-600">
         <p className="mb-1 font-semibold text-slate-800">Master of Science Computer Science Project</p>
         <p className="text-slate-500">Ramnarain Ruia Autonomous College, Matunga, Mumbai</p>
       </footer>
